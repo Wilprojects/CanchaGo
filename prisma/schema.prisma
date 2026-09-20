@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum CourtType {
+  FOOTBALL
+  PADEL
+  TENNIS
+  BASKETBALL
+}
+
+enum ReservationStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  RESCHEDULED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  IN_PROCESS
+  APPROVED
+  REJECTED
+  CANCELLED
+  REFUNDED
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(150)
+  passwordHash String   @db.VarChar(255)
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
+
+  reservations  Reservation[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  tokenHash String    @unique @db.VarChar(255)
+  userId    Int
+  expiresAt DateTime  @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Court {
+  id           Int       @id @default(autoincrement())
+  name         String    @db.VarChar(120)
+  slug         String    @unique @db.VarChar(150)
+  type         CourtType
+  capacity     Int
+  pricePerHour Decimal   @db.Decimal(10, 2)
+  description  String    @db.Text
+  imageUrl     String?   @db.Text
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(3)
+
+  reservations Reservation[]
+
+  @@index([type])
+  @@index([active])
+}
+
+model Reservation {
+  id         Int               @id @default(autoincrement())
+  userId     Int
+  courtId    Int
+  startAt    DateTime          @db.Timestamptz(3)
+  endAt      DateTime          @db.Timestamptz(3)
+  status     ReservationStatus @default(PENDING_PAYMENT)
+  totalPrice Decimal           @db.Decimal(10, 2)
+  expiresAt  DateTime?         @db.Timestamptz(3)
+  createdAt  DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime          @updatedAt @db.Timestamptz(3)
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  court    Court     @relation(fields: [courtId], references: [id], onDelete: Restrict)
+  payments Payment[]
+
+  @@index([userId])
+  @@index([courtId])
+  @@index([status])
+  @@index([courtId, startAt, endAt])
+}
+
+model Payment {
+  id                Int           @id @default(autoincrement())
+  quotationId       String        @unique @default(uuid()) @db.Uuid
+  reservationId     Int
+  status            PaymentStatus @default(PENDING)
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("PEN") @db.VarChar(3)
+  preferenceId      String?       @unique @db.VarChar(150)
+  initPoint         String?       @db.Text
+  providerPaymentId String?       @unique @db.VarChar(150)
+  statusDetail      String?       @db.VarChar(150)
+  paidAt            DateTime?     @db.Timestamptz(3)
+  createdAt         DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime      @updatedAt @db.Timestamptz(3)
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@index([reservationId])
+  @@index([status])
+}
