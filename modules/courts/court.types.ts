@@ -63,3 +63,23 @@ export interface CourtResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CourtAvailabilityQuery {
+  startAt: Date;
+  endAt: Date;
+  type?: CourtType;
+}
+
+export interface CourtAvailabilityEntityShape
+  extends CourtEntityShape {
+  reservations: {
+    id: number;
+  }[];
+}
+
+export interface CourtAvailabilityItem
+  extends CourtResponse {
+  available: boolean;
+  durationHours: number;
+  totalPrice: number;
+}

@@ -1,5 +1,6 @@
 import {prisma,} from "@/lib/db/prisma";
-import type {CreateCourtData, ListCourtsQuery, UpdateCourtData,} from "@/modules/courts/court.types";
+import {ReservationStatus,} from "@/generated/prisma/enums";
+import type {CourtAvailabilityQuery, CreateCourtData, ListCourtsQuery, UpdateCourtData,} from "@/modules/courts/court.types";
 
 function buildWhere(query: ListCourtsQuery,) {
   return {
@@ -73,6 +74,77 @@ export const courtRepository = {
     return prisma.court.update({
       where: {id,},
       data,
+    });
+  },
+
+  findForAvailability(query: CourtAvailabilityQuery, now: Date,) {
+    return prisma.court.findMany({
+      where: {
+        active: true,
+        ...(query.type
+          ? {
+              type: query.type,
+            }
+          : {}),
+      },
+
+      include: {
+        reservations: {
+          where: {
+            startAt: {
+              lt: query.endAt,
+            },
+
+            endAt: {
+              gt: query.startAt,
+            },
+
+            OR: [
+              {
+                status: {
+                  in: [
+                    ReservationStatus.CONFIRMED,
+                    ReservationStatus.RESCHEDULED,
+                  ],
+                },
+              },
+
+              {
+                status: ReservationStatus.PENDING_PAYMENT,
+
+                OR: [
+                  {
+                    expiresAt:
+                      null,
+                  },
+
+                  {
+                    expiresAt: {
+                      gt: now,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+
+          select: {
+            id: true,
+          },
+
+          take: 1,
+        },
+      },
+
+      orderBy: [
+        {
+          type: "asc",
+        },
+
+        {
+          name: "asc",
+        },
+      ],
     });
   },
 };

@@ -1,6 +1,6 @@
 import Joi, {type ObjectSchema,} from "joi";
 import {CourtType,} from "@/generated/prisma/enums";
-import type {CreateCourtInput, ListCourtsQuery, UpdateCourtInput,} from "@/modules/courts/court.types";
+import type {CourtAvailabilityQuery, CreateCourtInput, ListCourtsQuery, UpdateCourtInput,} from "@/modules/courts/court.types";
 
 const nameSchema = Joi.string().trim().min(3).max(120);
 
@@ -44,4 +44,11 @@ export const listCourtsQuerySchema: ObjectSchema<ListCourtsQuery> =
     search: Joi.string().trim().min(2).max(100).optional(),
     page: Joi.number().integer().min(1).default(1),
     limit: Joi.number().integer().min(1).max(100).default(20),
+  });
+
+export const courtAvailabilityQuerySchema: ObjectSchema<CourtAvailabilityQuery> =
+  Joi.object({
+    startAt: Joi.date().iso().required(),
+    endAt: Joi.date().iso().required(),
+    type: typeSchema.optional(),
   });
