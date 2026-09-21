@@ -42,11 +42,9 @@ if (jwtAccessSecret.length < 32) {
 }
 
 export const env = {
-  appName:
-    process.env.APP_NAME ?? "CanchaGo",
+  appName: process.env.APP_NAME ?? "CanchaGo",
 
-  appUrl:
-    process.env.APP_URL ?? "http://localhost:3000",
+  appUrl: process.env.APP_URL ?? "http://localhost:3000",
 
   jwtAccessSecret,
 
@@ -60,5 +58,11 @@ export const env = {
     positiveIntegerEnv(
       "REFRESH_TOKEN_TTL_DAYS",
       7,
+    ),
+
+  reservationHoldMinutes:
+    positiveIntegerEnv(
+      "RESERVATION_HOLD_MINUTES",
+      15,
     ),
 } as const;
