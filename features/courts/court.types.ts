@@ -32,3 +32,31 @@ export interface ListCourtsParams {
   page?: number;
   limit?: number;
 }
+
+export interface CourtAvailabilityItem
+  extends Court {
+  available: boolean;
+  durationHours: number;
+  totalPrice: number;
+}
+
+export interface CourtAvailabilityData {
+  items:
+    CourtAvailabilityItem[];
+
+  search?: {
+    startAt: string;
+    endAt: string;
+    durationHours: number;
+    type:| CourtType| null;
+    timeZone: string;
+  };
+
+  summary?: unknown;
+}
+
+export interface CourtAvailabilityParams {
+  startAt: string;
+  endAt: string;
+  type?: CourtType;
+}

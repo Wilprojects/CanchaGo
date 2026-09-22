@@ -7,6 +7,7 @@ import {
 import {
   usePathname,
   useRouter,
+  useSearchParams,
 } from "next/navigation";
 
 import {
@@ -32,17 +33,17 @@ export function RequireRole({
   role,
   children,
 }: RequireRoleProps) {
-  const router =
-    useRouter();
 
-  const pathname =
-    usePathname();
+  
+  const router = useRouter();
 
-  const {
-    user,
-    status,
-  } =
-    useAuth();
+  const pathname = usePathname();
+
+  const searchParams = useSearchParams();
+
+  const currentPath = searchParams.size > 0 ? `${pathname}?${searchParams.toString()}` : pathname;
+
+  const {user,  status,} =  useAuth();
 
   useEffect(() => {
     if (
@@ -51,7 +52,7 @@ export function RequireRole({
     ) {
       router.replace(
         `/login?next=${encodeURIComponent(
-          pathname,
+          currentPath,
         )}`,
       );
 
@@ -76,6 +77,7 @@ export function RequireRole({
     role,
     router,
     pathname,
+    currentPath
   ]);
 
   if (
