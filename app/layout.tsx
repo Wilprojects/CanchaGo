@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import {
+  AuthProvider,
+} from "@/features/auth/auth.context";
 
 import "./globals.css";
 
@@ -21,7 +24,11 @@ export default function RootLayout({
 }: RootLayoutProps) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

@@ -13,6 +13,11 @@ interface ApiErrorResponse {
   };
 }
 
+export interface ApiFetchOptions
+  extends RequestInit {
+  retryOnUnauthorized?: boolean;
+}
+
 export class ApiClientError extends Error {
   statusCode: number;
   code: string;
@@ -26,10 +31,17 @@ export class ApiClientError extends Error {
   ) {
     super(message);
 
-    this.name = "ApiClientError";
-    this.statusCode = statusCode;
-    this.code = code;
-    this.details = details;
+    this.name =
+      "ApiClientError";
+
+    this.statusCode =
+      statusCode;
+
+    this.code =
+      code;
+
+    this.details =
+      details;
   }
 }
 
@@ -37,53 +49,55 @@ export function isAbortError(
   error: unknown,
 ): boolean {
   return (
-    error instanceof
-      DOMException &&
-    error.name ===
-      "AbortError"
+    error instanceof DOMException &&
+    error.name === "AbortError"
   );
 }
 
-export async function apiFetch<T>(
-  url: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const headers =
-    new Headers(
-      options.headers,
-    );
+let refreshPromise:
+  | Promise<boolean>
+  | null = null;
 
-  if (
-    options.body &&
-    !headers.has(
-      "Content-Type",
-    )
-  ) {
-    headers.set(
-      "Content-Type",
-      "application/json",
-    );
+async function tryRefreshSession():
+  Promise<boolean> {
+  if (typeof window === "undefined") {
+    return false;
   }
 
-  let response: Response;
-
-  try {
-    response =
-      await fetch(
-        url,
+  if (!refreshPromise) {
+    refreshPromise =
+      fetch(
+        "/api/auth/refresh",
         {
-          ...options,
-          headers,
-
-          credentials:
-            "include",
+          method: "POST",
+          credentials: "include",
         },
-      );
+      )
+        .then(
+          (response) =>
+            response.ok,
+        )
+        .catch(() => false)
+        .finally(() => {
+          refreshPromise = null;
+        });
+  }
+
+  return refreshPromise;
+}
+
+async function executeRequest(
+  url: string,
+  options: RequestInit,
+) {
+  try {
+    return await fetch(
+      url,
+      options,
+    );
   } catch (error) {
     if (
-      isAbortError(
-        error,
-      )
+      isAbortError(error)
     ) {
       throw error;
     }
@@ -94,19 +108,92 @@ export async function apiFetch<T>(
       "NETWORK_ERROR",
     );
   }
+}
+
+export async function apiFetch<T>(
+  url: string,
+  options:
+    ApiFetchOptions = {},
+): Promise<T> {
+  const {
+    retryOnUnauthorized =
+      true,
+
+    ...requestOptions
+  } = options;
+
+  const headers =
+    new Headers(
+      requestOptions.headers,
+    );
+
+  if (
+    requestOptions.body &&
+    !headers.has(
+      "Content-Type",
+    )
+  ) {
+    headers.set(
+      "Content-Type",
+      "application/json",
+    );
+  }
+
+  const fetchOptions:
+    RequestInit = {
+    ...requestOptions,
+
+    headers,
+
+    credentials:
+      "include",
+  };
+
+  let response =
+    await executeRequest(
+      url,
+      fetchOptions,
+    );
+
+  if (
+    response.status === 401 &&
+    retryOnUnauthorized &&
+    url !==
+      "/api/auth/refresh"
+  ) {
+    const refreshed =
+      await tryRefreshSession();
+
+    if (
+      refreshed &&
+      !requestOptions
+        .signal
+        ?.aborted
+    ) {
+      response =
+        await executeRequest(
+          url,
+          fetchOptions,
+        );
+    }
+  }
+
+  if (
+    response.status === 204
+  ) {
+    return undefined as T;
+  }
 
   let payload:
     | ApiSuccessResponse<T>
     | ApiErrorResponse
-    | null =
-    null;
+    | null = null;
 
   try {
     payload =
       await response.json();
   } catch {
-    payload =
-      null;
+    payload = null;
   }
 
   if (!response.ok) {
@@ -118,15 +205,18 @@ export async function apiFetch<T>(
     throw new ApiClientError(
       response.status,
 
-      errorPayload?.error
+      errorPayload
+        ?.error
         ?.message ??
         "Ocurrió un error al procesar la solicitud.",
 
-      errorPayload?.error
+      errorPayload
+        ?.error
         ?.code ??
         "API_ERROR",
 
-      errorPayload?.error
+      errorPayload
+        ?.error
         ?.details,
     );
   }

@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+
 import {
   usePathname,
+  useRouter,
 } from "next/navigation";
+
 import {
   useState,
 } from "react";
@@ -12,22 +15,19 @@ import {
   Brand,
 } from "@/components/layout/brand";
 
-const navigation = [
+import {
+  useAuth,
+} from "@/features/auth/auth.context";
+
+const publicNavigation = [
   {
     href: "/",
     label: "Inicio",
   },
+
   {
     href: "/canchas",
     label: "Canchas",
-  },
-  {
-    href: "/intranet/reservas",
-    label: "Mis reservas",
-  },
-  {
-    href: "/backoffice",
-    label: "Administración",
   },
 ];
 
@@ -51,11 +51,73 @@ export function PublicHeader() {
   const pathname =
     usePathname();
 
+  const router =
+    useRouter();
+
+  const {
+    user,
+    status,
+    signOut,
+  } =
+    useAuth();
+
   const [
     menuOpen,
     setMenuOpen,
   ] =
     useState(false);
+
+  const [
+    loggingOut,
+    setLoggingOut,
+  ] =
+    useState(false);
+
+  const navigation = [
+    ...publicNavigation,
+
+    ...(user?.role ===
+    "USER"
+      ? [
+          {
+            href:
+              "/intranet/reservas",
+
+            label:
+              "Mis reservas",
+          },
+        ]
+      : []),
+
+    ...(user?.role ===
+    "ADMIN"
+      ? [
+          {
+            href:
+              "/backoffice",
+
+            label:
+              "Administración",
+          },
+        ]
+      : []),
+  ];
+
+  async function handleLogout() {
+    try {
+      setLoggingOut(true);
+
+      await signOut();
+
+      setMenuOpen(false);
+
+      router.replace("/");
+
+      router.refresh();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   return (
     <header className="topbar">
@@ -69,8 +131,12 @@ export function PublicHeader() {
           {navigation.map(
             (item) => (
               <Link
-                key={item.href}
-                href={item.href}
+                key={
+                  item.href
+                }
+                href={
+                  item.href
+                }
                 className={
                   `nav-link ${
                     isActivePath(
@@ -89,19 +155,64 @@ export function PublicHeader() {
         </nav>
 
         <div className="nav-actions">
-          <Link
-            href="/login"
-            className="btn btn-outline btn-sm"
-          >
-            Ingresar
-          </Link>
+          {status ===
+            "unauthenticated" && (
+            <>
+              <Link
+                href="/login"
+                className="btn btn-outline btn-sm"
+              >
+                Ingresar
+              </Link>
 
-          <Link
-            href="/registro"
-            className="btn btn-primary btn-sm"
-          >
-            Crear cuenta
-          </Link>
+              <Link
+                href="/registro"
+                className="btn btn-primary btn-sm"
+              >
+                Crear cuenta
+              </Link>
+            </>
+          )}
+
+          {status ===
+            "authenticated" &&
+            user && (
+              <div className="header-user">
+                <Link
+                  href={
+                    user.role ===
+                    "ADMIN"
+                      ? "/backoffice"
+                      : "/intranet"
+                  }
+                  className="user-chip"
+                >
+                  {user.name}
+                </Link>
+
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  disabled={
+                    loggingOut
+                  }
+                  onClick={
+                    handleLogout
+                  }
+                >
+                  {loggingOut
+                    ? "Saliendo..."
+                    : "Cerrar sesión"}
+                </button>
+              </div>
+            )}
+
+          {status ===
+            "loading" && (
+            <span className="header-session-loading">
+              Sesión...
+            </span>
+          )}
         </div>
 
         <button
@@ -135,8 +246,12 @@ export function PublicHeader() {
         {navigation.map(
           (item) => (
             <Link
-              key={item.href}
-              href={item.href}
+              key={
+                item.href
+              }
+              href={
+                item.href
+              }
               className={
                 `nav-link ${
                   isActivePath(
@@ -158,25 +273,47 @@ export function PublicHeader() {
           ),
         )}
 
-        <Link
-          href="/login"
-          className="nav-link"
-          onClick={() =>
-            setMenuOpen(false)
-          }
-        >
-          Ingresar
-        </Link>
+        {status ===
+          "unauthenticated" && (
+          <>
+            <Link
+              href="/login"
+              className="nav-link"
+              onClick={() =>
+                setMenuOpen(
+                  false,
+                )
+              }
+            >
+              Ingresar
+            </Link>
 
-        <Link
-          href="/registro"
-          className="nav-link"
-          onClick={() =>
-            setMenuOpen(false)
-          }
-        >
-          Crear cuenta
-        </Link>
+            <Link
+              href="/registro"
+              className="nav-link"
+              onClick={() =>
+                setMenuOpen(
+                  false,
+                )
+              }
+            >
+              Crear cuenta
+            </Link>
+          </>
+        )}
+
+        {status ===
+          "authenticated" && (
+          <button
+            type="button"
+            className="mobile-logout"
+            onClick={
+              handleLogout
+            }
+          >
+            Cerrar sesión
+          </button>
+        )}
       </nav>
     </header>
   );

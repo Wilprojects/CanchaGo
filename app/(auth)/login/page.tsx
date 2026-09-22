@@ -1,14 +1,28 @@
-import Link from "next/link";
-
 import {
   Container,
 } from "@/components/ui/container";
+
+import {
+  LoginForm,
+} from "@/features/auth/components/login-form";
 
 export const metadata = {
   title: "Ingresar",
 };
 
-export default function LoginPage() {
+interface LoginPageProps {
+  searchParams:
+    Promise<{
+      next?: string;
+    }>;
+}
+
+export default async function LoginPage({
+  searchParams,
+}: LoginPageProps) {
+  const params =
+    await searchParams;
+
   return (
     <Container className="auth-container">
       <section className="auth-shell">
@@ -39,87 +53,11 @@ export default function LoginPage() {
 
         <div className="auth-form">
           <div className="auth-form-inner">
-            <div className="eyebrow">
-              Iniciar sesión
-            </div>
-
-            <h2 className="section-title">
-              Ingresa a CanchaGo
-            </h2>
-
-            <p className="section-subtitle">
-              Utiliza tu correo y
-              contraseña.
-            </p>
-
-            <form
-              style={{
-                marginTop: "28px",
-              }}
-            >
-              <div className="field">
-                <label htmlFor="email">
-                  Correo electrónico
-                </label>
-
-                <input
-                  id="email"
-                  type="email"
-                  className="input"
-                  placeholder="usuario@correo.com"
-                />
-              </div>
-
-              <div
-                className="field"
-                style={{
-                  marginTop:
-                    "15px",
-                }}
-              >
-                <label htmlFor="password">
-                  Contraseña
-                </label>
-
-                <input
-                  id="password"
-                  type="password"
-                  className="input"
-                  placeholder="••••••••"
-                />
-              </div>
-
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{
-                  width: "100%",
-                  marginTop:
-                    "22px",
-                }}
-              >
-                Ingresar
-              </button>
-            </form>
-
-            <p
-              className="muted"
-              style={{
-                marginTop: "20px",
-              }}
-            >
-              ¿No tienes una cuenta?{" "}
-              <Link
-                href="/registro"
-                style={{
-                  color:
-                    "var(--primary-2)",
-                  fontWeight: 800,
-                }}
-              >
-                Crear cuenta
-              </Link>
-            </p>
+            <LoginForm
+              nextPath={
+                params.next
+              }
+            />
           </div>
         </div>
       </section>
