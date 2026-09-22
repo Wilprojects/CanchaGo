@@ -3,6 +3,9 @@ import {
 } from "@/lib/api/api-client";
 
 import type {
+  Court,
+  CourtAvailabilityData,
+  CourtAvailabilityParams,
   CourtListData,
   ListCourtsParams,
 } from "@/features/courts/court.types";
@@ -53,6 +56,50 @@ export async function getCourts(
       method:
         "GET",
 
+      signal,
+    },
+  );
+}
+
+export function getCourtById(
+  courtId: number,
+  signal?: AbortSignal,
+) {
+  return apiFetch<Court>(
+    `/api/courts/${courtId}`,
+    {
+      method: "GET",
+      signal,
+    },
+  );
+}
+
+export function getCourtAvailability(
+  params:
+    CourtAvailabilityParams,
+
+  signal?: AbortSignal,
+) {
+  const searchParams =
+    new URLSearchParams({
+      startAt:
+        params.startAt,
+
+      endAt:
+        params.endAt,
+    });
+
+  if (params.type) {
+    searchParams.set(
+      "type",
+      params.type,
+    );
+  }
+
+  return apiFetch<CourtAvailabilityData>(
+    `/api/courts/availability?${searchParams.toString()}`,
+    {
+      method: "GET",
       signal,
     },
   );

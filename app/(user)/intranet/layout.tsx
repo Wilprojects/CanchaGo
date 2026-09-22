@@ -1,4 +1,8 @@
 import {
+  Suspense,
+} from "react";
+
+import {
   DashboardShell,
 } from "@/components/layout/dashboard-shell";
 
@@ -45,23 +49,33 @@ export default function UserLayout({
     <>
       <PublicHeader />
 
-      <RequireRole role="USER">
-        <Container className="dashboard-container">
-          <DashboardShell
-            sidebar={
-              <DashboardSidebar
-                title="Mi CanchaGo"
-                meta="Área del usuario"
-                links={
-                  userNavigation
-                }
-              />
-            }
-          >
-            {children}
-          </DashboardShell>
-        </Container>
-      </RequireRole>
+      <Suspense
+        fallback={
+          <div className="auth-loading">
+            <div className="auth-spinner" />
+
+            <span>
+              Cargando sesión...
+            </span>
+          </div>
+        }
+      >
+        <RequireRole role="USER">
+          <Container className="dashboard-container">
+            <DashboardShell
+              sidebar={
+                <DashboardSidebar
+                  title="Mi CanchaGo"
+                  meta="Área del usuario"
+                  links={userNavigation}
+                />
+              }
+            >
+              {children}
+            </DashboardShell>
+          </Container>
+        </RequireRole>
+      </Suspense>
     </>
   );
 }

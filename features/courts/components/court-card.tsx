@@ -99,14 +99,25 @@ export function CourtCard({
         </div>
 
         <div className="court-card-footer">
-          <Link
-            href={
-              `/intranet/reservas/nueva?courtId=${court.id}`
-            }
-            className="btn btn-primary"
-          >
-            Reservar cancha
-          </Link>
+          <div className="court-card-actions">
+            <Link
+              href={
+                `/canchas/${court.id}`
+              }
+              className="btn btn-outline"
+            >
+              Ver detalle
+            </Link>
+
+            <Link
+              href={
+                `/intranet/reservas/nueva?courtId=${court.id}`
+              }
+              className="btn btn-primary"
+            >
+              Reservar
+            </Link>
+          </div>
         </div>
       </div>
     </article>
