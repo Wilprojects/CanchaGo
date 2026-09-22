@@ -6,6 +6,10 @@ import {
   Container,
 } from "@/components/ui/container";
 
+import {
+  FeaturedCourts,
+} from "@/features/courts/components/featured-courts";
+
 export default function HomePage() {
   return (
     <Container>
@@ -203,6 +207,40 @@ export default function HomePage() {
             </p>
           </article>
         </div>
+      </section>
+
+      <section
+        style={{
+          marginTop: "48px",
+        }}
+      >
+        <div className="section-head">
+          <div>
+            <div className="eyebrow">
+              Espacios deportivos
+            </div>
+
+            <h2 className="section-title">
+              Canchas destacadas
+            </h2>
+
+            <p className="section-subtitle">
+              Descubre algunos de
+              nuestros espacios
+              disponibles para
+              reservar.
+            </p>
+          </div>
+
+          <ButtonLink
+            href="/canchas"
+            variant="outline"
+          >
+            Ver todas
+          </ButtonLink>
+        </div>
+
+        <FeaturedCourts />
       </section>
     </Container>
   );

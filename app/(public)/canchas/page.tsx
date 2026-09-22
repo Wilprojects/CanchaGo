@@ -1,4 +1,8 @@
 import {
+  CourtCatalog,
+} from "@/features/courts/components/court-catalog";
+
+import {
   Container,
 } from "@/components/ui/container";
 
@@ -16,22 +20,10 @@ export default function CourtsPage() {
       <PageHeader
         eyebrow="Catálogo"
         title="Encuentra tu cancha"
-        description="Explora las canchas disponibles y encuentra el espacio ideal para tu próximo partido."
+        description="Explora nuestras canchas deportivas y encuentra el espacio ideal para tu próximo partido."
       />
 
-      <div className="placeholder">
-        <strong>
-          Catálogo preparado
-        </strong>
-
-        <span className="muted">
-          En la Fase 2 cargaremos
-          aquí las canchas reales
-          mediante GET /api/courts,
-          filtros y tarjetas
-          reutilizables.
-        </span>
-      </div>
+      <CourtCatalog />
     </Container>
   );
 }
