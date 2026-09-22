@@ -14,6 +14,10 @@ import {
   Container,
 } from "@/components/ui/container";
 
+import {
+  RequireRole,
+} from "@/features/auth/components/require-role";
+
 const userNavigation = [
   {
     href: "/intranet",
@@ -41,21 +45,23 @@ export default function UserLayout({
     <>
       <PublicHeader />
 
-      <Container className="dashboard-container">
-        <DashboardShell
-          sidebar={
-            <DashboardSidebar
-              title="Mi CanchaGo"
-              meta="Área del usuario"
-              links={
-                userNavigation
-              }
-            />
-          }
-        >
-          {children}
-        </DashboardShell>
-      </Container>
+      <RequireRole role="USER">
+        <Container className="dashboard-container">
+          <DashboardShell
+            sidebar={
+              <DashboardSidebar
+                title="Mi CanchaGo"
+                meta="Área del usuario"
+                links={
+                  userNavigation
+                }
+              />
+            }
+          >
+            {children}
+          </DashboardShell>
+        </Container>
+      </RequireRole>
     </>
   );
 }
