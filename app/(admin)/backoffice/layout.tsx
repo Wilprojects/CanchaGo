@@ -14,6 +14,10 @@ import {
   Container,
 } from "@/components/ui/container";
 
+import {
+  RequireRole,
+} from "@/features/auth/components/require-role";
+
 const adminNavigation = [
   {
     href: "/backoffice",
@@ -49,21 +53,23 @@ export default function AdminLayout({
     <>
       <PublicHeader />
 
-      <Container className="dashboard-container">
-        <DashboardShell
-          sidebar={
-            <DashboardSidebar
-              title="Administración"
-              meta="Backoffice CanchaGo"
-              links={
-                adminNavigation
-              }
-            />
-          }
-        >
-          {children}
-        </DashboardShell>
-      </Container>
+      <RequireRole role="ADMIN">
+        <Container className="dashboard-container">
+          <DashboardShell
+            sidebar={
+              <DashboardSidebar
+                title="Administración"
+                meta="Backoffice CanchaGo"
+                links={
+                  adminNavigation
+                }
+              />
+            }
+          >
+            {children}
+          </DashboardShell>
+        </Container>
+      </RequireRole>
     </>
   );
 }
