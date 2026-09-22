@@ -1,18 +1,12 @@
-const LIMA_TIME_ZONE =
-  "America/Lima";
+import type {
+  ReservationStatus,
+} from "@/features/reservations/reservation.types";
 
-const LIMA_OFFSET =
-  "-05:00";
-
-export const BUSINESS_OPEN_HOUR =
-  6;
-
-export const BUSINESS_CLOSE_HOUR =
-  23;
-
-export type ReservationDuration =
-  | 1
-  | 2;
+const LIMA_TIME_ZONE = "America/Lima";
+const LIMA_OFFSET = "-05:00";
+export const BUSINESS_OPEN_HOUR = 6;
+export const BUSINESS_CLOSE_HOUR = 23;
+export type ReservationDuration = | 1 | 2;
 
 export function getLimaToday() {
   const parts =
@@ -170,4 +164,94 @@ export function formatReservationDateTime(
     .format(
       new Date(value),
     );
+}
+
+export const RESERVATION_STATUS_LABELS:
+  Record<
+    ReservationStatus,
+    string
+  > = {
+  PENDING_PAYMENT:
+    "Pendiente de pago",
+
+  CONFIRMED:
+    "Confirmada",
+
+  CANCELLED:
+    "Cancelada",
+
+  RESCHEDULED:
+    "Reprogramada",
+
+  EXPIRED:
+    "Expirada",
+};
+
+export function getReservationStatusClass(
+  status:
+    ReservationStatus,
+) {
+  switch (status) {
+    case "PENDING_PAYMENT":
+      return "reservation-status-pending";
+
+    case "CONFIRMED":
+      return "reservation-status-confirmed";
+
+    case "RESCHEDULED":
+      return "reservation-status-rescheduled";
+
+    case "CANCELLED":
+      return "reservation-status-cancelled";
+
+    case "EXPIRED":
+      return "reservation-status-expired";
+  }
+}
+
+export function getReservationDurationHours(
+  startAt: string,
+  endAt: string,
+) {
+  const start =
+    new Date(
+      startAt,
+    ).getTime();
+
+  const end =
+    new Date(
+      endAt,
+    ).getTime();
+
+  return (
+    end -
+    start
+  ) /
+    (
+      60 *
+      60 *
+      1000
+    );
+}
+
+export function canManageReservation(
+  startAt: string,
+  status:
+    ReservationStatus,
+) {
+  if (
+    status ===
+      "CANCELLED" ||
+    status ===
+      "EXPIRED"
+  ) {
+    return false;
+  }
+
+  return (
+    new Date(
+      startAt,
+    ).getTime() >
+    Date.now()
+  );
 }
