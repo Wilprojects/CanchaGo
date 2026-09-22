@@ -41,28 +41,34 @@ if (jwtAccessSecret.length < 32) {
   );
 }
 
+type MercadoPagoEnvironment = | "test"| "production";
+
+function mercadoPagoEnvironmentEnv():
+  MercadoPagoEnvironment {
+  const value = process.env.MERCADO_PAGO_ENVIRONMENT ?? "test";
+
+  if (value !== "test" && value !== "production"
+  ) {
+    throw new Error("MERCADO_PAGO_ENVIRONMENT debe ser test o production.",);
+  }
+
+  return value;
+}
+
+function normalizeBaseUrl(value: string,) {
+  return value.replace(/\/+$/,"",);
+}
+
 export const env = {
   appName: process.env.APP_NAME ?? "CanchaGo",
-
   appUrl: process.env.APP_URL ?? "http://localhost:3000",
-
   jwtAccessSecret,
 
-  accessTokenTtlMinutes:
-    positiveIntegerEnv(
-      "ACCESS_TOKEN_TTL_MINUTES",
-      15,
-    ),
-
-  refreshTokenTtlDays:
-    positiveIntegerEnv(
-      "REFRESH_TOKEN_TTL_DAYS",
-      7,
-    ),
-
-  reservationHoldMinutes:
-    positiveIntegerEnv(
-      "RESERVATION_HOLD_MINUTES",
-      15,
-    ),
+  accessTokenTtlMinutes: positiveIntegerEnv("ACCESS_TOKEN_TTL_MINUTES", 15,),
+  refreshTokenTtlDays: positiveIntegerEnv("REFRESH_TOKEN_TTL_DAYS", 7,),
+  reservationHoldMinutes: positiveIntegerEnv("RESERVATION_HOLD_MINUTES",15,),
+  publicAppUrl: normalizeBaseUrl(requireEnv("PUBLIC_APP_URL",),),
+  mercadoPagoAccessToken: requireEnv("MERCADO_PAGO_ACCESS_TOKEN",),
+  mercadoPagoWebhookSecret: requireEnv("MERCADO_PAGO_WEBHOOK_SECRET",),
+  mercadoPagoEnvironment: mercadoPagoEnvironmentEnv(),
 } as const;
