@@ -7,7 +7,9 @@ import type {
   CourtAvailabilityData,
   CourtAvailabilityParams,
   CourtListData,
+  CreateCourtInput,
   ListCourtsParams,
+  UpdateCourtInput,
 } from "@/features/courts/court.types";
 
 export async function getCourts(
@@ -23,6 +25,18 @@ export async function getCourts(
     searchParams.set(
       "type",
       params.type,
+    );
+  }
+
+  if (
+    typeof params.active ===
+    "boolean"
+  ) {
+    searchParams.set(
+      "active",
+      String(
+        params.active,
+      ),
     );
   }
 
@@ -101,6 +115,112 @@ export function getCourtAvailability(
     {
       method: "GET",
       signal,
+    },
+  );
+}
+
+export async function getAdminCourts(
+  signal?: AbortSignal,
+) {
+  const [
+    activeCourts,
+    inactiveCourts,
+  ] =
+    await Promise.all([
+      getCourts(
+        {
+          active:
+            true,
+
+          page:
+            1,
+
+          limit:
+            100,
+        },
+
+        signal,
+      ),
+
+      getCourts(
+        {
+          active:
+            false,
+
+          page:
+            1,
+
+          limit:
+            100,
+        },
+
+        signal,
+      ),
+    ]);
+
+  return [
+    ...activeCourts.items,
+    ...inactiveCourts.items,
+  ].sort(
+    (
+      first,
+      second,
+    ) =>
+      first.name.localeCompare(
+        second.name,
+        "es",
+      ),
+  );
+}
+
+export function createCourt(
+  input:
+    CreateCourtInput,
+) {
+  return apiFetch<Court>(
+    "/api/courts",
+    {
+      method:
+        "POST",
+
+      body:
+        JSON.stringify(
+          input,
+        ),
+    },
+  );
+}
+
+export function updateCourt(
+  courtId:
+    number,
+
+  input:
+    UpdateCourtInput,
+) {
+  return apiFetch<Court>(
+    `/api/courts/${courtId}`,
+    {
+      method:
+        "PATCH",
+
+      body:
+        JSON.stringify(
+          input,
+        ),
+    },
+  );
+}
+
+export function deactivateCourt(
+  courtId:
+    number,
+) {
+  return apiFetch<unknown>(
+    `/api/courts/${courtId}`,
+    {
+      method:
+        "DELETE",
     },
   );
 }
