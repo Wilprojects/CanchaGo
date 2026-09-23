@@ -1,7 +1,16 @@
-import type { NextConfig } from "next";
+import type {
+  NextConfig,
+} from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const ngrokDevOrigin =
+  process.env.NGROK_DEV_ORIGIN;
+
+const nextConfig:
+  NextConfig = {
+  allowedDevOrigins:
+    ngrokDevOrigin
+      ? [ngrokDevOrigin]
+      : [],
 };
 
 export default nextConfig;

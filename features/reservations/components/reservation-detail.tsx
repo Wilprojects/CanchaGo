@@ -37,6 +37,10 @@ import {
   isAbortError,
 } from "@/lib/api/api-client";
 
+import {
+  PaymentPanel,
+} from "@/features/payments/components/payment-panel";
+
 interface ReservationDetailProps {
   reservationId:
     number;
@@ -291,6 +295,16 @@ export function ReservationDetail({
       )}
 
       <div className="reservation-detail-grid">
+
+        {reservation.status ===
+          "PENDING_PAYMENT" && (
+          <PaymentPanel
+            reservation={
+              reservation
+            }
+          />
+        )}
+
         <section className="reservation-detail-card">
           <h2>
             Información de la
@@ -410,20 +424,7 @@ export function ReservationDetail({
             </p>
           )}
 
-          {reservation.status ===
-            "PENDING_PAYMENT" && (
-            <div className="reservation-payment-placeholder">
-              <strong>
-                Pago pendiente
-              </strong>
-
-              <span>
-                El pago con Mercado
-                Pago se habilitará en
-                la siguiente fase.
-              </span>
-            </div>
-          )}
+          
 
           <Link
             href="/intranet/reservas"
