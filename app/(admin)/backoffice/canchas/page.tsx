@@ -1,13 +1,14 @@
 import {
-  PlaceholderPage,
-} from "@/components/ui/placeholder-page";
+  AdminCourtManager,
+} from "@/features/courts/components/admin-court-manager";
+
+export const metadata = {
+  title:
+    "Gestión de canchas",
+};
 
 export default function AdminCourtsPage() {
   return (
-    <PlaceholderPage
-      eyebrow="Administración"
-      title="Gestión de canchas"
-      description="Crea, edita, desactiva y reactiva las canchas."
-    />
+    <AdminCourtManager />
   );
 }
