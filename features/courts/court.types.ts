@@ -29,6 +29,7 @@ export interface CourtListData {
 export interface ListCourtsParams {
   type?: CourtType;
   search?: string;
+  active?: boolean;
   page?: number;
   limit?: number;
 }
@@ -59,4 +60,23 @@ export interface CourtAvailabilityParams {
   startAt: string;
   endAt: string;
   type?: CourtType;
+}
+
+export interface CreateCourtInput {
+  name: string;
+  type: CourtType;
+  capacity: number;
+  pricePerHour: number;
+  description: string;
+  imageUrl: | string | null;
+}
+
+export interface UpdateCourtInput {
+  name?: string;
+  type?: CourtType;
+  capacity?: number;
+  pricePerHour?: number;
+  description?: string;
+  imageUrl?: | string| null;
+  active?: boolean;
 }
