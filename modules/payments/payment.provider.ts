@@ -62,7 +62,8 @@ export async function createMercadoPagoPreference(
             description:
               `Reserva CanchaGo #${input.reservationId}`,
 
-            quantity: 1,
+            quantity:
+              1,
 
             currency_id:
               "PEN",
@@ -119,20 +120,24 @@ export async function createMercadoPagoPreference(
       },
     });
 
+
   const preferenceId =
     response.id;
 
+  /*
+   * Utilizamos init_point como URL
+   * de inicio de Checkout Pro.
+   *
+   * No seleccionamos manualmente
+   * sandbox_init_point basándonos
+   * en MERCADO_PAGO_ENVIRONMENT.
+   *
+   * El entorno efectivo debe estar
+   * determinado por las credenciales
+   * usadas para crear la Preference.
+   */
   const checkoutUrl =
-    env
-      .mercadoPagoEnvironment ===
-    "test"
-      ? (
-          response
-            .sandbox_init_point ??
-          response
-            .init_point
-        )
-      : response.init_point;
+    response.init_point;
 
   if (
     !preferenceId ||
@@ -145,6 +150,7 @@ export async function createMercadoPagoPreference(
 
   return {
     preferenceId,
+
     checkoutUrl,
   };
 }
@@ -202,7 +208,7 @@ export function validateMercadoPagoWebhook(
   } catch (error) {
     if (
       error instanceof
-      InvalidWebhookSignatureError
+        InvalidWebhookSignatureError
     ) {
       return false;
     }

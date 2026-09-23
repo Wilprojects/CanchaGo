@@ -1,57 +1,135 @@
-import {
-  ApiError,
-} from "@/lib/http/api-error";
+import type {
+  NextRequest,
+} from "next/server";
 
 import {
-  apiSuccess,
-} from "@/lib/http/api-response";
+  NextResponse,
+} from "next/server";
 
 import {
-  withApiRoute,
-} from "@/lib/http/with-api-route";
+  env,
+} from "@/lib/config/env";
 
-interface ReturnRouteContext {
-  params: Promise<{
-    result:
-      string;
-  }>;
+import {
+  paymentService,
+} from "@/modules/payments/payment.service";
+
+interface PaymentReturnRouteProps {
+  params:
+    Promise<{
+      result: string;
+    }>;
 }
 
-export const GET =
-  withApiRoute(
-    async (
-      _request: Request,
-      context:
-        ReturnRouteContext,
-    ) => {
-      const {
-        result,
-      } =
-        await context.params;
+export async function GET(
+  request:
+    NextRequest,
 
-      if (
-        result !==
-          "success" &&
-        result !==
-          "pending" &&
-        result !==
-          "failure"
-      ) {
-        throw new ApiError(
-          404,
-          "Resultado de pago no reconocido.",
-          "PAYMENT_RETURN_NOT_FOUND",
+  {
+    params,
+  }:
+    PaymentReturnRouteProps,
+) {
+  const {
+    result,
+  } =
+    await params;
+
+  if (
+    result !== "success" &&
+    result !== "pending" &&
+    result !== "failure"
+  ) {
+    return NextResponse.redirect(
+      new URL(
+        "/intranet/reservas",
+        env.publicAppUrl,
+      ),
+    );
+  }
+
+  const paymentId =
+    request.nextUrl
+      .searchParams
+      .get("payment_id");
+
+  /*
+   * Reconciliación de seguridad.
+   *
+   * NO confiamos en:
+   * ?status=approved
+   *
+   * Si Mercado Pago entrega un payment_id,
+   * consultamos el pago real a Mercado Pago
+   * desde nuestro backend.
+   *
+   * processWebhookPayment() ya realiza las
+   * validaciones de proveedor y actualiza
+   * Payment + Reservation.
+   */
+  if (
+    paymentId &&
+    result === "success"
+  ) {
+    try {
+      console.log(
+        "[MP_RETURN_RECONCILIATION]",
+        {
+          paymentId,
+        },
+      );
+
+      await paymentService
+        .processWebhookPayment(
+          paymentId,
         );
-      }
 
-      return apiSuccess({
-        result,
+      console.log(
+        "[MP_RETURN_RECONCILIATION_OK]",
+        {
+          paymentId,
+        },
+      );
+    } catch (error) {
+      /*
+       * No bloqueamos el retorno del usuario.
+       *
+       * El frontend podrá seguir consultando
+       * el Payment y el webhook podrá
+       * reintentarse posteriormente.
+       */
+      console.error(
+        "[MP_RETURN_RECONCILIATION_ERROR]",
+        {
+          paymentId,
+          error,
+        },
+      );
+    }
+  }
 
-        message:
-          "Retorno recibido desde Mercado Pago.",
+  const target =
+    new URL(
+      `/intranet/pagos/resultado/${result}`,
+      env.publicAppUrl,
+    );
 
-        important:
-          "Este retorno del navegador no confirma el pago. El estado definitivo se actualiza mediante Webhook.",
-      });
-    },
+  request.nextUrl
+    .searchParams
+    .forEach(
+      (
+        value,
+        key,
+      ) => {
+        target.searchParams
+          .append(
+            key,
+            value,
+          );
+      },
+    );
+
+  return NextResponse.redirect(
+    target,
   );
+}
